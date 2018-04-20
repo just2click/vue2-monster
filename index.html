@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Slayer</title>
+    <script src="https://npmcdn.com/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+    <section class="row">
+        <div class="small-6 columns">
+            <h1 class="text-center">YOU</h1>
+            <div class="healthbar">
+                <div class="healthbar text-center" style="background-color: green; margin: 0; color: white;" :style="{width: player.score + '%'}">
+                	{{ player.score }}
+                </div>
+            </div>
+        </div>
+        <div class="small-6 columns">
+            <h1 class="text-center">MONSTER</h1>
+            <div class="healthbar">
+                <div class="healthbar text-center" style="background-color: green; margin: 0; color: white;" :style="{width: monster.score + '%'}">
+                	{{ monster.score }}
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="row controls" v-if="!gameOn">
+        <div class="small-12 columns">
+            <button id="start-game" @click="startGame">START NEW GAME</button>
+        </div>
+    </section>
+    <section class="row controls" v-if="gameOn">
+        <div class="small-12 columns">
+            <button id="attack" @click="attack">ATTACK</button>
+            <button id="special-attack" @click="specialAttack">SPECIAL ATTACK</button>
+            <button id="heal" @click="heal">HEAL</button>
+            <button id="give-up" @click="giveUp">GIVE UP</button>
+        </div>
+    </section>
+    <section class="row log">
+        <div class="small-12 columns">
+            <ul>
+                <li v-for="score of scores" v-bind:class="{ 'monster-turn': score.turn === 'monster', 'player-turn': score.turn === 'player' }">
+                	<div v-if="score.turn === 'player'">{{ player.message + score.value }}</div>
+                	<div v-if="score.turn === 'monster'">{{ monster.message + score.value }}</div>
+                </li>
+            </ul>
+        </div>
+    </section>
+</div>
+
+<script>
+	new Vue({
+		el: '#app',
+		data: {
+			player: {
+				score: 100,
+				message: 'Player hits monster for '
+			},
+			monster: {
+				score: 100,
+				message: 'Monster hits player for '
+			},
+			gameOn: false,
+			scores: [],
+		},
+		methods: {
+			startGame: function () {
+				this.player.score = 100;
+				this.monster.score = 100;
+				this.scores.length = 0;
+				this.gameOn = true;
+			},
+			playerAttack: function (value) {
+				this.monster.score -= value;
+				this.scores.push({
+					turn: 'player',
+					value: value				
+				});
+				this.monsterAttack();
+				this.isGameOver();
+			},
+			attack: function () {
+				let attack = Math.floor(Math.random() * 5) + 1;
+				this.playerAttack(attack);
+			},
+			specialAttack: function () {
+				let attack = Math.floor(Math.random() * 10) + 5;
+				this.playerAttack(attack);
+			},
+			heal: function () {
+				let healBy = Math.floor(Math.random() * 20) + 1;
+				let healed = this.player.score + healBy;
+				if (healed >= 100) {
+					this.player.score = 100;
+				} else {
+					this.player.score = healed;
+				}
+				this.scores.push({
+					turn: 'player',
+					value: 0
+				});
+				this.monsterAttack();
+				this.isGameOver();
+			},
+			giveUp: function () {
+				alert('You gave up ...');
+				this.gameOn = false;
+			},
+			monsterAttack () {
+				let attack = Math.floor(Math.random() * 20) + 1;
+				this.player.score -= attack;
+				this.scores.push({
+					turn: 'monster',
+					value: attack
+				});
+				this.isGameOver();
+			},
+			isGameOver: function () {
+				if (this.player.score <= 0) {
+					alert('You die, the monster wins!');
+					this.gameOn = false;
+				} else if (this.monster.score <= 0) {
+					alert('Good job, you defeated the monster!');
+					this.gameOn = false;
+				}
+			}
+		}
+	});
+</script>
+
+</body>
+</html>
